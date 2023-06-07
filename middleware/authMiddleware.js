@@ -44,3 +44,11 @@ module.exports.authenticate = (req, res, next) => {
       });
   });
 };
+
+module.exports.isAdmin = (req, res, next) => {
+  if (User.role !== 'admin') {
+    next();
+    return;
+  }
+  return res.status(403).json({ message: 'Forbidden' }); 
+};

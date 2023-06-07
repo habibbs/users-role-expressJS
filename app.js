@@ -1,6 +1,5 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const jwt = require('jsonwebtoken');
 
@@ -12,8 +11,6 @@ const port = 3000;
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// Routes
-app.use('/auth', authRoutes);
 
 app.use('/api', userRoutes);
 
