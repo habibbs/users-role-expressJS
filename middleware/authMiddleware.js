@@ -2,25 +2,6 @@ const jwt = require('jsonwebtoken');
 require('dotenv').config()
 const User = require('../models').users;
 
-// Authentication middleware
-// exports.authenticate = (req, res, next) => {
-//   const token = req.headers.authorization;
-
-//   if (!token) {
-//     return res.status(401).json({ message: 'No token provided' });
-//   }
-
-//   jwt.verify(token, process.env.jwtSecret, (err, decoded) => {
-//     if (err) {
-//       return res.status(403).json({ message: 'Failed to authenticate token' });
-//     }
-
-//     req.userId = decoded.userId;
-//     req.role = decoded.role;
-//     next();
-//   });
-// };
-
 module.exports.authenticate = (req, res, next) => {
   const token = req.headers.authorization;
 
@@ -45,10 +26,23 @@ module.exports.authenticate = (req, res, next) => {
   });
 };
 
-module.exports.isAdmin = (req, res, next) => {
-  if (User.role !== 'admin') {
-    next();
-    return;
+module.exports.checkAdminRole = (req, res, next) => {
+  const token = req.headers.authorization;
+
+  if (!token) {
+    return res.status(401).json({ message: 'Unauthorized' });
   }
-  return res.status(403).json({ message: 'Forbidden' }); 
+
+  try {
+    const decodedToken = jwt.verify(token, process.env.jwtSecret);
+    const { role } = decodedToken;
+
+    if (role !== 'admin') {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+
+    next();
+  } catch (error) {
+    return res.status(500).json({ message: 'Internal Server Error' });
+  }
 };

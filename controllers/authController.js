@@ -31,3 +31,35 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: 'Internal server error', err: error });
   }
 };
+
+exports.register = async (req, res) => {
+  const { email, password, name, address } = req.body;
+  try {
+    // Check if user with the same username already exists
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      return res.status(400).json({ message: 'Email already exists' });
+    }
+
+    // Create a new user
+    const newUser = await User.create({
+      email,
+      password: await bcrypt.hash(password, 10),
+      name,
+      address
+    });
+
+    // Generate JWT token
+    const token = jwt.sign({ email:newUser.email, password: newUser.password, role: newUser.role }, config.jwtSecret, { expiresIn: '1h' });
+
+    // Return token
+    res.json({
+      data: User, 
+      token,
+      message: 'Registrasi Success' 
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+};
