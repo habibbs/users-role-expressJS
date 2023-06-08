@@ -36,25 +36,31 @@ exports.register = async (req, res) => {
   const { email, password, name, address } = req.body;
   try {
     // Check if user with the same username already exists
-    const existingUser = await User.findOne({ where: { email } });
-    if (existingUser) {
+    const checkEmail = await User.findOne({ where: { email } });
+    if (checkEmail) {
       return res.status(400).json({ message: 'Email already exists' });
     }
 
     // Create a new user
+    const pwd = await bcrypt.hash(password, 10)
     const newUser = await User.create({
       email,
-      password: await bcrypt.hash(password, 10),
+      password: pwd,
       name,
       address
     });
 
     // Generate JWT token
-    const token = jwt.sign({ email:newUser.email, password: newUser.password, role: newUser.role }, config.jwtSecret, { expiresIn: '1h' });
+    const token = jwt.sign({ email:newUser.email, password: newUser.password, role: newUser.role }, `${process.env.jwtSecret}`, { expiresIn: '1h' });
 
     // Return token
     res.json({
-      data: User, 
+      data: {
+        email: newUser.email,
+        name: newUser.name,
+        role: newUser.role,
+        address: newUser.address,
+      }, 
       token,
       message: 'Registrasi Success' 
     });
